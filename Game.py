@@ -11,10 +11,10 @@ class Game:
         self.player = Player()
         self.levels = [Level(self.player,
                              (self.W, self.H - 50), 5, (1, 5),
-                             (15, 36),
+                             (30, 50),
                              (250, 450)), Level(self.player,
                                                 (self.W, self.H - 50), 5, (1, 5),
-                                                (15, 36), (250, 450))]
+                                                (40, 60), (250, 450))]
         self.play()
 
     def play(self):
