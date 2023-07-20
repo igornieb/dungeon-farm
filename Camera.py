@@ -15,6 +15,10 @@ class CameraGroup(pygame.sprite.Group):
         self.ground_surf = surf
         self.ground_rect = self.ground_surf.get_rect(topleft=(0, 0))
 
+        self.static = pygame.sprite.Group()
+        self.enemies = pygame.sprite.Group()
+        self.player = pygame.sprite.Group()
+
     def center_target_camera(self, target):
         self.offset.x = target.rect.centerx - self.half_w
         self.offset.y = target.rect.centery - self.half_h
@@ -24,7 +28,16 @@ class CameraGroup(pygame.sprite.Group):
         ground_offset = self.ground_rect.topleft - self.offset
         self.display_surface.blit(self.ground_surf, ground_offset)
 
-        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
+        # draw static elements, enemies and player
+        for sprite in self.static:
+            offset_pos = sprite.rect.topleft - self.offset
+            self.display_surface.blit(sprite.image, offset_pos)
+
+        for sprite in self.enemies:
+            offset_pos = sprite.rect.topleft - self.offset
+            self.display_surface.blit(sprite.image, offset_pos)
+
+        for sprite in self.player:
             offset_pos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offset_pos)
 
