@@ -4,7 +4,6 @@ from models.Walls import Wall
 from models.Characters import *
 from perlin_noise import PerlinNoise
 
-# TODO place player, collisions between enemies and walls
 
 class Level:
     def __init__(self, player: Player, size: tuple, enemies_no: int, enemies_damage_range: tuple,
@@ -18,7 +17,7 @@ class Level:
         self.background = pygame.image.load('assets/level1.png')
 
         # place player in free space
-        for i in range(size[0]):
+        for i in range(0, size[0], -1):
             for j in range(size[1]):
                 self.player.rect.center = i, j
                 if not collidegroup(self.player, self.walls):
