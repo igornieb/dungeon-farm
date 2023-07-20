@@ -1,11 +1,9 @@
 import pygame
 from random import randint
-
 from pygame import Rect
-
 from models.Items import Coin
 from models.Spells import *
-from utilis import distance
+from utilis import distance, collidegroup
 import math
 
 # todo
@@ -144,21 +142,29 @@ class Player(Character):
                 self.current_texture = 0
             self.set_walking_animation()
 
-    def player_input(self):
+    def player_input(self, walls):
         keys = pygame.key.get_pressed()
         self.play_standing = False
         if keys[pygame.K_d] and self.rect.right < W:
             self.rect.right += 1
             self.orientation = "r"
+            if collidegroup(self, walls):
+                self.rect.right -= 1
         if keys[pygame.K_a] and self.rect.left > 0:
             self.rect.right -= 1
             self.orientation = "l"
+            if collidegroup(self, walls):
+                self.rect.right += 1
         if keys[pygame.K_w] and self.rect.top > 0:
             self.rect.top -= 1
             self.orientation = "t"
+            if collidegroup(self, walls):
+                self.rect.top += 1
         if keys[pygame.K_s] and self.rect.bottom < H - 50:
             self.rect.bottom += 1
             self.orientation = "d"
+            if collidegroup(self, walls):
+                self.rect.bottom -= 1
         if not keys[pygame.K_d] and not keys[pygame.K_a] and not keys[pygame.K_w] and not keys[pygame.K_s]:
             self.play_standing = True
 
@@ -167,7 +173,8 @@ class Player(Character):
             for enemy in enemies:
                 if pygame.mouse.get_pressed()[0] and distance(event.pos[0] + offset[0], event.pos[1] + offset[1],
                                                               self.rect.centerx,
-                                                              self.rect.centery) < self.max_leftclick_range and enemy.rect.collidepoint(event.pos + offset):
+                                                              self.rect.centery) < self.max_leftclick_range and enemy.rect.collidepoint(
+                    event.pos + offset):
                     loot = enemy.get_damage(self.get_hit())
                     self.play_fighting_animation = True
                     self.current_texture = 0
@@ -177,7 +184,7 @@ class Player(Character):
                     return enemy.health, True, loot
 
     def heal(self):
-        if pygame.time.get_ticks() - self.last_heal > self.cooldown * 2:
+        if pygame.time.get_ticks() - self.last_heal > self.cooldown:
             if self.health < 100:
                 self.health += 1
                 self.last_heal = pygame.time.get_ticks()
@@ -190,9 +197,9 @@ class Player(Character):
         self.spell.rect.centerx = self.rect.centerx
         return self.spell
 
-    def update_state(self):
+    def update_state(self, walls):
         self.set_texture()
-        self.player_input()
+        self.player_input(walls)
         self.heal()
         self.update()
 
@@ -244,7 +251,7 @@ class Enemy(Character):
         ]
 
         self.image = self.image_list_r[0]
-        self.rect = self.image.get_rect(midbottom=position)
+        self.rect = self.image.get_rect(topleft=position)
         self.attack_range = self.image.get_width() * 2
 
     def fighting(self):
