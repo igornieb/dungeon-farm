@@ -1,6 +1,8 @@
-from random import randrange
+from random import randrange, random
 import pygame.sprite
+from models.Walls import Wall
 from models.Characters import *
+from perlin_noise import PerlinNoise
 
 
 class Level:
@@ -8,10 +10,22 @@ class Level:
                  enemies_health_range: tuple, enemies_eye_range: tuple):
         self.player = player
         self.size = size
+        self.walls = self.create_walls(size)
         self.enemies = self.create_enemies(enemies_no, enemies_damage_range, enemies_health_range)
         self.ground_items = pygame.sprite.Group()
         self.enemies_eye_range = enemies_eye_range
         self.background = pygame.image.load('assets/level1.png')
+
+    def create_walls(self, size: tuple):
+        walls = pygame.sprite.Group()
+        noise = PerlinNoise(octaves=10, seed=int(random()))
+        xpix, ypix = size[1], size[0]
+        map = [[noise([i / xpix, j / ypix]) for j in range(0, xpix, 10)] for i in range(0, ypix, 10)]
+        for i in range(0, ypix // 10):
+            for j in range(0, xpix // 10):
+                if map[i][j] > 0.3:
+                    walls.add(Wall(position=(i * 10, j * 10)))
+        return walls
 
     def create_enemies(self, enemies_no, enemies_damage_range, enemies_health_range) -> list[Enemy]:
         enemies = pygame.sprite.Group()
@@ -47,4 +61,4 @@ class Level:
         self.check_items()
         self.check_damage()
         self.move_enemies(offset)
-        self.player.update_state()
+        self.player.update_state(self.walls)
