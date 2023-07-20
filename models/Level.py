@@ -4,6 +4,7 @@ from models.Walls import Wall
 from models.Characters import *
 from perlin_noise import PerlinNoise
 
+# TODO place player, collisions between enemies and walls
 
 class Level:
     def __init__(self, player: Player, size: tuple, enemies_no: int, enemies_damage_range: tuple,
@@ -15,6 +16,16 @@ class Level:
         self.ground_items = pygame.sprite.Group()
         self.enemies_eye_range = enemies_eye_range
         self.background = pygame.image.load('assets/level1.png')
+
+        # place player in free space
+        for i in range(size[0]):
+            for j in range(size[1]):
+                self.player.rect.center = i, j
+                if not collidegroup(self.player, self.walls):
+                    break
+            else:
+                continue  # only executed if the inner loop did NOT break
+            break
 
     def create_walls(self, size: tuple):
         walls = pygame.sprite.Group()
@@ -32,7 +43,7 @@ class Level:
         for i in range(enemies_no):
             enemies.add(Enemy(health=randrange(start=enemies_health_range[0], stop=enemies_health_range[1]),
                               damage_range=enemies_damage_range,
-                              position=(randint(1, self.size[0] - 1), randint(1, self.size[1] - 1))))
+                              position=(randint(1, self.size[0] - 1), randint(1, self.size[1] - 1)), range=2))
         return enemies
 
     def check_damage(self):
@@ -54,7 +65,7 @@ class Level:
 
     def move_enemies(self, offset):
         for enemy in self.enemies:
-            enemy.move(self.player, self.enemies_eye_range, offset)
+            enemy.move(self.player, self.enemies_eye_range, offset, self.walls)
 
     def update(self, offset: tuple):
         self.enemies.update()
