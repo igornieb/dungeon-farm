@@ -45,7 +45,7 @@ class Character(pygame.sprite.Sprite):
 
 
 class Player(Character):
-    def __init__(self, health=100, mana=100, damage_range=(15, 36), range=2, score=0):
+    def __init__(self, health=100, mana=100, damage_range=(15, 36), range=4, score=0):
         super().__init__(health, mana, damage_range, range)
         # textures for player
         self.image_list_r = [
@@ -95,11 +95,11 @@ class Player(Character):
         self.score = score
 
         # attack range
-        self.max_leftclick_range = self.image.get_width() * range * 2
-        self.max_rightclick_range = self.image.get_width() * range * 4
+        self.max_left_click_range = self.image.get_width() * range * 1.5
+        self.max_right_click_range = self.image.get_width() * range * 2
 
         # spell
-        self.spell = Fireball(int(self.max_rightclick_range), 10)
+        self.spell = Fireball(int(self.max_right_click_range), 10)
 
         # healing timer
         self.last_heal = pygame.time.get_ticks()
@@ -173,7 +173,7 @@ class Player(Character):
             for enemy in enemies:
                 if pygame.mouse.get_pressed()[0] and distance(event.pos[0] + offset[0], event.pos[1] + offset[1],
                                                               self.rect.centerx,
-                                                              self.rect.centery) < self.max_leftclick_range and enemy.rect.collidepoint(
+                                                              self.rect.centery) < self.max_left_click_range and enemy.rect.collidepoint(
                     event.pos + offset):
                     loot = enemy.get_damage(self.get_hit())
                     self.play_fighting_animation = True
@@ -304,20 +304,26 @@ class Enemy(Character):
             self.kill()
             return Coin((self.rect.centerx, self.rect.centery), randint(1, 20))
 
-    def move(self, player: Player, enemies_eye_range: tuple, offset: tuple):
+    def move(self, player: Player, enemies_eye_range: tuple, offset: tuple, walls: pygame.sprite.Group):
         if distance(player.rect.centerx + offset[0], player.rect.centery + offset[1], self.rect.centerx,
                     self.rect.centery) < randint(enemies_eye_range[0], enemies_eye_range[1]):
             # move enemies closer to player
             dir_x = player.rect.centerx - self.rect.centerx
             dir_y = player.rect.centery - self.rect.centery
             hyp = math.sqrt(dir_x * dir_x + dir_y * dir_y)
+            self.play_standing = False
             if hyp > 0 and not player.rect.colliderect(self):
                 dir_x /= hyp
                 dir_y /= hyp
                 self.rect.centerx += dir_x
                 self.rect.centery += dir_y
+
+                if collidegroup(self, walls, offset):
+                    self.play_standing = True
+                    self.rect.centerx -= dir_x
+                    self.rect.centery -= dir_y
+
             # set direction for textures
-            self.play_standing = False
             if dir_x >= 0 and dir_x > dir_y:
                 self.orientation = "r"
             if 0 >= dir_x > dir_y:
