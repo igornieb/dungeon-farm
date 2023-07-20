@@ -12,7 +12,7 @@ class Game:
         self.levels = [Level(self.player,
                              (self.W, self.H - 50), 10, (1, 5),
                              (30, 50),
-                             (250, 450)), Level(self.player,
+                             (300, 450)), Level(self.player,
                                                 (self.W, self.H - 50), 5, (1, 5),
                                                 (40, 60), (250, 450))]
         self.play()
