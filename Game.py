@@ -10,7 +10,7 @@ class Game:
         self.FPS = 60
         self.player = Player()
         self.levels = [Level(self.player,
-                             (self.W, self.H - 50), 5, (1, 5),
+                             (self.W, self.H - 50), 10, (1, 5),
                              (30, 50),
                              (250, 450)), Level(self.player,
                                                 (self.W, self.H - 50), 5, (1, 5),
@@ -22,27 +22,26 @@ class Game:
         i = 0
         #
         pygame.init()
-        pygame.display.set_mode(RES)
+        pygame.display.set_mode(self.RES)
         pygame.display.set_caption('Game')
         clock = pygame.time.Clock()
         background_ui = pygame.Surface((800, 50))
         font = pygame.font.Font(None, 20)
-        screen = pygame.display.set_mode(RES)
+        screen = pygame.display.set_mode(self.RES)
 
         level = self.levels[i]
 
         while True:
-
             camera = CameraGroup(level.background.convert_alpha())
-            camera.add(level.player)
-            for enemy in level.enemies:
-                camera.add(enemy)
+            camera.player.add(level.player)
+            camera.enemies = level.enemies
+            camera.static = level.walls
 
             while level.player.alive:
                 screen.fill((0, 0, 0))
                 if not level.enemies:
                     break
-                camera.remove(level.player.get_spell())
+                camera.static.remove(level.player.get_spell())
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
@@ -57,7 +56,7 @@ class Game:
                             else:
                                 attack_label = font.render(f"", False, "White")
                             if current_attack[1]:
-                                camera.add(level.player.get_spell())
+                                camera.static.add(level.player.get_spell())
                             if current_attack[2]:
                                 level.ground_items.add(current_attack[2])
                             background_area = level.background.convert_alpha()
@@ -66,7 +65,7 @@ class Game:
                 # update level, player, enemies
                 level.update(camera.offset)
                 for gi in level.ground_items:
-                    camera.add(gi)
+                    camera.static.add(gi)
                 # add ground items
                 camera.update()
                 camera.draw_camera(level.player)
